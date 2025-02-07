@@ -68,7 +68,7 @@
   }, "non-fully active document behavior for CredentialsContainer");
 
   promise_test(async (t) => {
-    const iframe = await createIframe();
+    let iframe = await createIframe();
     const DOMExceptionCtor = iframe.contentWindow.DOMException;
     let stolenNavigator = iframe.contentWindow.navigator;
     const request = makeGetOptions("openid4vp");
