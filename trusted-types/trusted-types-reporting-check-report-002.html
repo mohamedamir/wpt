@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="/resources/testharness.js"></script>
+  <script src="/resources/testharnessreport.js"></script>
+  <title>Check Trusted Type violation reports</title>
+
+<!-- We assume these HTTP headers are set on the request:
+
+  Set-Cookie: trusted-types-reporting-check-report-002={{$id:uuid()}}; Path=/trusted-types/
+  Content-Security-Policy-Report-Only: \
+     require-trusted-type-for 'script'; \
+     report-uri /reporting/resources/report.py?op=put&reportID={{$id}}
+-->
+</head>
+<body>
+  <script nonce="123">
+    test(() => {
+      let div = document.createElement("div");
+      div.innerHTML = "ABC"; // violation reported
+      assert_equals(div.innerHTML, "ABC");
+      div.innerHTML = "DEF"; // another violation reported
+      assert_equals(div.innerHTML, "DEF");
+    }, "Setting innerHTML to a plain string.");
+
+    test(() => {
+      let div = document.createElement("div");
+      let p = window.trustedTypes.createPolicy("dummy", {createHTML: x => x});
+      div.innerHTML = p.createHTML("ABC"); // no violation reported
+      assert_equals(div.innerHTML, "ABC");
+    }, "Setting innerHTML to a TrustedHTML.");
+
+    test(_ => {
+      assert_throws_js(EvalError, _ => eval(";;;;")); // violation reported
+    }, "Passing a plain string to eval.");
+  </script>
+  <script async defer src='../content-security-policy/support/checkReport.sub.js?reportField=violated-directive&reportValue=require-trusted-types-for&testName=Test report-uri works with require-trusted-types-for violation.&reportCount=3'></script>
+</body>
+</html>
