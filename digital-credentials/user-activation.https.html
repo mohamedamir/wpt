@@ -59,8 +59,11 @@
       navigator.userActivation.isActive,
       "User activation should be active after test_driver.bless()."
     );
-    const options = makeCreateOptions({protocol: []});
-    await promise_rejects_js(t, TypeError, navigator.credentials.create(options));
+    const abort = new AbortController();
+    const options = makeCreateOptions({ signal: abort.signal });
+    const createPromise = navigator.credentials.create(options);
+    abort.abort();
+    await promise_rejects_dom(t, "AbortError", createPromise);
     assert_false(
       navigator.userActivation.isActive,
       "User activation should be consumed after navigator.credentials.create()."
